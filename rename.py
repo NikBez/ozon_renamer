@@ -7,27 +7,32 @@ SUFFIX = '.jpg'
 
 
 def main():
-    folders = {}
-    with os.scandir(DEFAULT_PATH) as parent_files:
-        parent_folders = [file.name for file in parent_files if os.path.isdir(file) and file.name != '.idea']
-        for folder in parent_folders:
-            with os.scandir(Path(DEFAULT_PATH)/folder) as files:
-                folders[folder] = [file.name for file in files if os.path.isdir(file) and file.name != '.idea']
-
+    folders = scan_dirs()
     for parent, folders_list in folders.items():
         for folder in folders_list:
-            counter = 0
-            files = os.listdir(Path(DEFAULT_PATH) / parent / folder)
-            for file in sorted(files, key=lambda file: file):
-                ext = Path(file).SUFFIX
-                if ext == SUFFIX:
-                    if not counter:
-                        os.rename(Path(DEFAULT_PATH) / parent / folder / file,
-                                  Path(DEFAULT_PATH) / parent / folder / f'{folder}.jpg')
-                    else:
-                        os.rename(Path(DEFAULT_PATH) / parent / folder / file,
-                                  Path(DEFAULT_PATH) / parent / folder / f'{folder}@{counter}.jpg')
-                    counter += 1
+            rename_files(folder)
+
+
+def scan_dirs():
+    folders = {}
+    with os.scandir(DEFAULT_PATH) as parent_folders:
+        parent_folders = [folder for folder in parent_folders if folder.is_dir() and folder.name not in ['.idea', '.git']]
+    for folder in parent_folders:
+        with os.scandir(folder.path) as pic_folders:
+            folders[folder] = [pic_folder for pic_folder in pic_folders if pic_folder.is_dir()]
+    return folders
+
+
+def rename_files(folder):
+    counter = 0
+    files = os.scandir(folder.path)
+    for file in sorted(files, key=lambda file: file.name):
+        if Path(file).suffix == SUFFIX:
+            if not counter:
+                os.rename(Path(file.path), Path(file.path).parents[0]/f'{folder.name}.jpg')
+            else:
+                os.rename(Path(file.path), Path(file.path).parents[0] / f'{folder.name}@{counter}.jpg')
+            counter += 1
 
 
 if __name__ == '__main__':

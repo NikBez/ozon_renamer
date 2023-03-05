@@ -3,7 +3,7 @@ from pathlib import Path
 
 
 DEFAULT_PATH = '.'
-SUFFIX = '.jpg'
+SUFFIXES = ['.jpg', '.jpeg']
 
 
 def main():
@@ -27,7 +27,7 @@ def rename_files(folder):
     counter = 0
     files = os.scandir(folder.path)
     for file in sorted(files, key=lambda file: file.name):
-        if Path(file).suffix == SUFFIX:
+        if Path(file).suffix.lower() in SUFFIXES:
             if not counter:
                 os.rename(Path(file.path), Path(file.path).parents[0]/f'{folder.name}.jpg')
             else:
